@@ -1,49 +1,48 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
       app: nginx
   template:
     metadata:
       labels:
-        app: swiggy
+        app: nginx
     spec:
       containers:
-      - name: cont1
-        image: sujeethvaddi/phpapp:appimage
-        ports:
-        - containerPort: 80
+        - name: cont1
+          image: shaikmustafa/phpapp:appimage
+          ports:
+            - containerPort: 80
 
-        #configmap integration
-        envFrom:
-        - configMapRef:
-            name: bankapp-config
-        
-        #Resource quota integration
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+        #configmap Integration
+          envFrom:
+            - configMapRef:
+                name: bankapp-config
 
-        #Liveness probe integration
-        livenessProbe:
-          httpGet: 
-             path: /
-             port: 80
-          initialDelaySeconds: 30
-          PeriodSeconds: 5  
-        
-        #Readiness probe integration
-        readinessProbe:
-          httpGet: 
-             path: /
-             port: 80
-             initialDelaySeconds: 10
-             periodSeconds: 5
+        #Resource Quota
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 30
+            periodSeconds: 5
+
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 5
