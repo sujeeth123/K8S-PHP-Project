@@ -1,21 +1,39 @@
 apiVersion: networking.k8s.io/v1
-kind: Ingress
+kind: NetworkPolicy
 metadata:
-  name: bankapp-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  name: bankapp-allow-ingress
 
 spec:
-  ingressClassName: nginx
+  podSelector:
+    matchLabels:
+      app: nginx
 
-  rules:
-    - http:
-        paths:
-          - path: /
-            pathType: Prefix
+  policyTypes:
+    - Ingress
+    - Egress
 
-            backend:
-              service:
-                name: my-service
-                port:
-                  number: 80
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
+
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: app-database
+      ports:
+        - protocol: TCP
+          port: 3306
+
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
