@@ -1,55 +1,57 @@
 apiVersion: apps/v1
-kind: statefulset
+kind: StatefulSet
 metadata:
   name: mysql
+
 spec:
+  serviceName: mysqldb
+
   replicas: 1
+
   selector:
     matchLabels:
       app: app-database
+
   template:
     metadata:
       labels:
         app: app-database
+
     spec:
       containers:
-      - name: dbcont
-        image: sujeethvaddi/phpapp:dbimage
-        ports:
-        - containerPort: 3306
+        - name: dbcont
+          image: shaikmustafa/phpapp:dbimage
 
-        #configmap integration
-        envFrom:
-        - secretRef:
-            name: bankapp-db-secret
-        
-        #Resource quota integration
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "256Mi"
-            cpu: "200m"
+          ports:
+            - containerPort: 3306
+              name: mysql
 
-        #Liveness probe integration
-        livenessProbe:
-          httpGet: 
-             path: /
-             port: 80
-          initialDelaySeconds: 30
-          PeriodSeconds: 5  
-        
-        #VolumesMount
-        volumeMounts:
-        - name: pvc-1
-          mountPath: /var/lib/mysql
+          envFrom:
+            - secretRef:
+                name: bankapp-db-secret
 
-      volumeClaimTemplates:
-      - metadata:
-          name: pvc-1
-        spec:
-          accessModes: [ "ReadWriteOnce" ]
           resources:
             requests:
-              storage: 2Gi
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /usr/share/nginx/html/
+
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-data
+
+      spec:
+        accessModes:
+          - ReadWriteOnce
+
+        storageClassName: gp2
+
+        resources:
+          requests:
+            storage: 2Gi
